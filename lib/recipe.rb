@@ -1,9 +1,11 @@
 class Recipe
   attr_reader :name, :ingredients
-  
+
   def initialize(name)
     @name = name
     @ingredients = {}
+    @centi = 100
+    @milli = 1000
   end
 
   def ingredient_types
@@ -17,4 +19,5 @@ class Recipe
   def amount_required(ingredient_name)
     @ingredients[ingredient_name]
   end
+
 end
