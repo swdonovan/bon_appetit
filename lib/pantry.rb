@@ -30,16 +30,20 @@ class Pantry
     decide_convert(ingr(recipe))
   end
 
-  def decide_convert(ingredients)
-    ingredients.keys.inject({ }) do |container, key|
-      if ingredients[key] < 1 || ingredients[key] > 100
-        container[key] = centi_convert(ingredients[key]) if ingredients[key] > 100
-        container[key] = milli_convert(ingredients[key]) if ingredients[key] < 1
+  def decide_convert(ingred)
+    ingred.keys.inject({ }) do |container, key|
+      if ingred[key] < 1 || ingred[key] > 100
+        container[key] = centi_convert(ingred[key]) if ingred[key] > 100
+        container[key] = milli_convert(ingred[key]) if ingred[key] < 1
       else
-        container[key] = { quantity: (ingredients[key].ceil), units: "Universal Units"}
+        normal_key(ingred, container, key)
       end
       container
     end
+  end
+
+  def normal_key(ingredients, container, key)
+    container[key] = { quantity: (ingredients[key].ceil), units: "Universal Units"}
   end
 
   def centi_convert(amount)
@@ -56,7 +60,7 @@ class Pantry
 
   def print_shopping_list
     @shopping_list.map do |list|
-       p "* #{list[0].to_sym}  #{list[1]}"
+       "* #{list[0].to_sym}  #{list[1]}"
     end
   end
 
@@ -83,5 +87,30 @@ class Pantry
 
   def add_to_cookbook(recipe)
     @cook_book[recipe.name] = recipe.ingredients
+  end
+
+  def what_can_i_make
+    cook_book.keys.reject do |recipe|
+      check_stock?(recipe) == false
+    end
+  end
+
+  def check_stock?(recipe)
+    cook_book[recipe].keys.all? do |ingredient|
+      stock[ingredient] >= cook_book[recipe][ingredient]
+    end
+  end
+
+  def how_many_can_i_make
+    what_can_i_make.inject({}) do |hash, recipe|
+      hash[recipe] = (bake_amount(recipe)).min
+      hash
+    end
+  end
+
+  def bake_amount(recipe)
+    cook_book[recipe].keys.map do |ingredient|
+      ((stock[ingredient].to_f)/(cook_book[recipe][ingredient].to_f)).floor
+    end
   end
 end
