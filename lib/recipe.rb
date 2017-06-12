@@ -4,8 +4,6 @@ class Recipe
   def initialize(name)
     @name = name
     @ingredients = {}
-    @centi = 100
-    @milli = 1000
   end
 
   def ingredient_types

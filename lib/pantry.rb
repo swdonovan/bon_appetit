@@ -1,68 +1,87 @@
 require 'pry'
 class Pantry
-	attr_reader :stock,
-							:shopping_list
+  attr_reader :stock,
+              :shopping_list,
+              :cook_book
 
-	def initialize
-		@stock = {}
-		@shopping_list = {}
-	end
+  def initialize
+    @stock = {}
+    @shopping_list = {}
+    @cook_book = {}
+  end
 
-	def restock(item, amount)
-		@stock[item] += amount unless @stock[item] ==  nil
-		@stock[item] = amount if @stock == {}
-		@stock[item] = amount if @stock[item] == nil
-		stock[item]
-	end
+  def restock(item, amount)
+    @stock[item] += amount unless @stock[item] ==  nil
+    @stock[item] = amount if @stock == {}
+    @stock[item] = amount if @stock[item] == nil
+    stock[item]
+  end
 
-	def stock_check(item)
-		@stock[item] != nil ? amount = @stock[item]: amount = @stock
-		amount
-	end
+  def stock_check(item)
+    @stock[item] != nil ? amount = @stock[item]: amount = @stock
+    amount
+  end
 
-	def convert(recipe)
-		ingr = recipe.ingredients
-		ingr.keys.map.inject({ }) do |container, key|
-			if ingr[key] < 1 || ingr[key] > 100
-				container[key] = centi_convert(ingr[key]) if ingr[key] > 100
-				container[key] = milli_convert(ingr[key]) if ingr[key] < 1
-			else
-				container[key] = { quantity: (ingr[key].ceil), units: "Universal Units"}
-			end
-			container
-		end
-	end
+  def ingr(recipe)
+    recipe.ingredients
+  end
 
-	def centi_convert(amount)
-		output = { quantity: (amount / 100), units: "Centi-Units"}
-	end
+  def convert(recipe)
+    decide_convert(ingr(recipe))
+  end
 
-	def milli_convert(amount)
-		output = { quantity: ((amount * 1000).to_i), units: "Centi-Units"}
-	end
+  def decide_convert(ingredients)
+    ingredients.keys.inject({ }) do |container, key|
+      if ingredients[key] < 1 || ingredients[key] > 100
+        container[key] = centi_convert(ingredients[key]) if ingredients[key] > 100
+        container[key] = milli_convert(ingredients[key]) if ingredients[key] < 1
+      else
+        container[key] = { quantity: (ingredients[key].ceil), units: "Universal Units"}
+      end
+      container
+    end
+  end
 
-	def add_to_shopping_list(recipe)
-		@shopping_list = recipe.ingredients
-	end
+  def centi_convert(amount)
+    { quantity: (amount / 100), units: "Centi-Units"}
+  end
 
-	def print_shopping_list
-		@shopping_list.each do |list|
-			puts "* #{list[0].to_sym}  #{list[1]}"
-		end
-		@shopping_list
-	end
+  def milli_convert(amount)
+    { quantity: ((amount * 1000).to_i), units: "Milli-Units"}
+  end
 
-	def convert_units(recipe)
-		ingred = recipe.ingredients
-		converted = convert(recipe)
-		final = unit_convert_add(converted, ingred)
-	end
+  def add_to_shopping_list(recipe)
+    @shopping_list = recipe.ingredients
+  end
 
-	def unit_convert_add(converted, recipe)
-		converted = converted.keys.map do |key|
-			key = { key => [converted[key], {quantity: recipe[key].to_i, units: "Universal Units"}]}
-		end
-		converted
-	end
+  def print_shopping_list
+    @shopping_list.map do |list|
+       p "* #{list[0].to_sym}  #{list[1]}"
+    end
+  end
 
+  def convert_units(recipe)
+    converted = convert(recipe)
+    unit_convert_add(converted, ingr(recipe))
+  end
+
+  def unit_convert_add(converted, recipe)
+    converted = converted.keys.inject({}) do |hash, key|
+      hash[key] = key_convert(key, converted, recipe)
+      hash
+    end
+    converted
+  end
+
+  def key_convert(key, converted, recipe)
+    if converted[key].values.include?"Universal Units"
+      [converted[key]]
+    else
+      [converted[key], {quantity: recipe[key], units: "Universal Units"}]
+    end
+  end
+
+  def add_to_cookbook(recipe)
+    @cook_book[recipe.name] = recipe.ingredients
+  end
 end
