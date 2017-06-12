@@ -195,6 +195,25 @@ class PantryTest < Minitest::Test
     assert_equal Hash, actual.class
   end
 
+  def test_unit_convert_and_key_convert_work_correctly
+    r = Recipe.new("Spicy Cheese Pizza")
+  	r.add_ingredient("Cayenne Pepper", 0.0590)
+  	r.add_ingredient("Cheese", 1000)
+  	r.add_ingredient("Flour", 55000)
+
+  	pantry = Pantry.new
+    actual = pantry.unit_convert_add(pantry.convert(r), pantry.ingr(r))
+    expected = {"Cayenne Pepper"=>[{:quantity=>59, :units=>"Milli-Units"},
+                 {:quantity=>0.059, :units=>"Universal Units"}],
+                "Cheese"=>[{:quantity=>10, :units=>"Centi-Units"},
+                 {:quantity=>1000, :units=>"Universal Units"}],
+                "Flour"=>[{:quantity=>550, :units=>"Centi-Units"},
+                 {:quantity=>55000, :units=>"Universal Units"}]}
+
+    assert_equal expected, actual
+    assert_equal Hash, actual.class
+  end
+
   def test_it_adds_to_cookbook
     pantry = Pantry.new
     r1 = Recipe.new("Cheese Pizza")
@@ -215,6 +234,32 @@ class PantryTest < Minitest::Test
 
     assert_equal Hash, pantry.cook_book.class
     assert_equal 3, pantry.cook_book.length
+  end
+
+  def test_check_stock_works_correctly_true
+    pantry = Pantry.new
+    r1 = Recipe.new("Cheese Pizza")
+    r1.add_ingredient("Cheese", 20)
+    r1.add_ingredient("Flour", 20)
+
+    pantry.restock("Cheese", 20)
+    pantry.restock("Flour", 20)
+    pantry.add_to_cookbook(r1)
+
+    assert pantry.check_stock?("Cheese Pizza")
+  end
+
+  def test_check_stock_works_correctly_false
+    pantry = Pantry.new
+    r1 = Recipe.new("Cheese Pizza")
+    r1.add_ingredient("Cheese", 20)
+    r1.add_ingredient("Flour", 20)
+
+    pantry.restock("Cheese", 10)
+    pantry.restock("Flour", 20)
+    pantry.add_to_cookbook(r1)
+
+    refute pantry.check_stock?("Cheese Pizza")
   end
 
   def test_it_shows_what_it_can_make
@@ -248,7 +293,7 @@ class PantryTest < Minitest::Test
     assert_equal expected, pantry.what_can_i_make
   end
 
-  def test_it_shows_what_it_can_make_and_how_many
+  def test_it_shows_how_many_it_can_make
     pantry = Pantry.new
     r1 = Recipe.new("Cheese Pizza")
     r1.add_ingredient("Cheese", 20)
@@ -294,10 +339,24 @@ class PantryTest < Minitest::Test
     assert_equal expected, actual
   end
 
+  def test_bake_amount_returns_correctly_dif_numbs
+    pantry = Pantry.new
+    r1 = Recipe.new("Cheese Pizza")
+    r1.add_ingredient("Cheese", 20)
+    r1.add_ingredient("Flour", 20)
+
+    pantry.add_to_cookbook(r1)
+    pantry.restock("Cheese", 80)
+    pantry.restock("Flour", 600)
+    actual = pantry.bake_amount(r1.name)
+    expected = [4, 30]
+
+    assert_equal expected, actual
+  end
+
   def test_bake_amount_returns_different_numbs_correctly
     pantry = Pantry.new
     r1 = Recipe.new("Cheese Pizza")
-    # r.expects(:ingredients).returns({})
     r1.add_ingredient("Cheese", 20)
     r1.add_ingredient("Flour", 20)
 
