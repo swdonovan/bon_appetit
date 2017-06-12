@@ -3,8 +3,6 @@ require 'minitest/autorun'
 require 'minitest/pride'
 require_relative '../lib/pantry'
 require_relative '../lib/recipe'
-require "minitest/unit"
-require "mocha/mini_test"
 
 
 class PantryTest < Minitest::Test
